@@ -1,7 +1,12 @@
+import os
+from pathlib import Path
 from Mushroom_edibility_classifier.constants import *
 from Mushroom_edibility_classifier.utils.common import read_yaml, create_directories
 from Mushroom_edibility_classifier.entity.config_entity import( DataIngestionConfig,
-                                                               PrepareBaseModelConfig)
+                                                               PrepareBaseModelConfig,
+                                                               PrepareCallbackConfig,
+                                                               TrainingConfig,
+                                                               EvaluationConfig)
 
 class ConfigurationManager :
     
@@ -49,5 +54,66 @@ class ConfigurationManager :
         )
 
         return prepare_base_model_config
+    
+    def PrepareCallbackConfig(self) -> PrepareCallbackConfig:
+        config = self.config.prepare_callbacks
+        model_checkpoint_dir = os.path.dirname(config.checkpoint_path)
+        tensorboard_dir = Path(config.tensorboard_dir)
+        root_dir = Path(self.config.artifacts_root)
+
+        create_directories([model_checkpoint_dir, tensorboard_dir])
+
+        prepare_callback_config = PrepareCallbackConfig(
+            root_dir=Path(root_dir),
+            checkpoint_dir=Path(model_checkpoint_dir),
+            tensorboard_dir=Path(tensorboard_dir)
+        )
+
+        return prepare_callback_config
+    
+    def get_training_config(self) -> TrainingConfig:
+        training = self.config.training
+        prepare_base_model = self.config.prepare_base_model
+        params = self.params
+        
+        # Paths to pre-split datasets
+        base_data_dir = Path(self.config.data_ingestion.unzip_dir)
+        training_data = base_data_dir / "splitted_dataset/train"  # Changed to train folder
+        validation_data = base_data_dir / "splitted_dataset/val"   # Added validation path
+        test_data = base_data_dir / "splitted_dataset/test"       # Added test path (optional)
+
+        # Create required directories
+        create_directories([
+            Path(training.root_dir),
+            validation_data,  # Ensure val directory exists
+            test_data         # Ensure test directory exists (if used)
+        ])
+
+        training_config = TrainingConfig(
+            root_dir=Path(training.root_dir),
+            trained_model_path=Path(training.trained_model_path),
+            updated_base_model_path=Path(prepare_base_model.updated_base_model_path),
+            training_data=training_data,
+            validation_data=validation_data,  # Added
+            test_data=test_data,              # Added (optional)
+            params_epochs=params.EPOCHS,
+            params_batch_size=params.BATCH_SIZE,
+            params_is_augmentation=params.AUGMENTATION,
+            params_image_size=params.IMAGE_SIZE
+        )
+
+        return training_config
+    
+    def get_validation_config(self) -> EvaluationConfig:
+        eval_config = EvaluationConfig(
+            path_of_model=self.config["training"]["trained_model_path"],
+            test_data=self.config["training"]["test_data"],  # uses "val" as test
+            all_params=self.params,
+            params_image_size=self.params["IMAGE_SIZE"],
+            params_batch_size=self.params["BATCH_SIZE"]
+        )
+        return eval_config
+
+    
     
     

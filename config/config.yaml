@@ -19,3 +19,11 @@ prepare_callbacks:
   tensorboard_dir: artifacts/prepare_callbacks/tensorboard_logs
 
 
+training:
+  root_dir: artifacts/training
+  trained_model_path: artifacts/training/model.h5
+  training_data : artifacts/data_ingestion/splitted_dataset/train
+  validation_data : artifacts/data_ingestion/splitted_dataset/test
+  test_data : artifacts/data_ingestion/splitted_dataset/val
+
+

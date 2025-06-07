@@ -1,0 +1,78 @@
+schema: '2.0'
+stages:
+  data_ingestion:
+    cmd: python src/Mushroom_edibility_classifier/pipeline/stage_01_data_ingestion.py
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: 674b1c34376e6dc1aa591c19a9f1edbe
+      size: 987
+    - path: src/Mushroom_edibility_classifier/pipeline/stage_01_data_ingestion.py
+      hash: md5
+      md5: 0692ea4e60fb8141cb45cfa6861049df
+      size: 978
+    outs:
+    - path: artifacts/data_ingestion/splitted_dataset
+      hash: md5
+      md5: a719231e1f565d9fc1912b04f8e4ca57.dir
+      size: 1268291642
+      nfiles: 2820
+  prepare_base_model:
+    cmd: python src/Mushroom_edibility_classifier/pipeline/stage_02_preapre_base_model.py
+    deps:
+    - path: config/config.yaml
+      hash: md5
+      md5: 674b1c34376e6dc1aa591c19a9f1edbe
+      size: 987
+    - path: src/Mushroom_edibility_classifier/pipeline/stage_02_preapre_base_model.py
+      hash: md5
+      md5: a88ad0a1c89ac77a5853fe2cc3c0242f
+      size: 1052
+    params:
+      params.yaml:
+        CLASSES: 2
+        IMAGE_SIZE:
+        - 224
+        - 224
+        - 3
+        INCLUDE_TOP: false
+        LEARNING_RATE: 0.01
+        WEIGHTS: imagenet
+    outs:
+    - path: artifacts/prepare_base_model
+      hash: md5
+      md5: 23b382c87356dbb5e11f75d27925bb1d.dir
+      size: 118073528
+      nfiles: 2
+  evaluation:
+    cmd: python src/Mushroom_edibility_classifier/pipeline/stage_04_evaluation.py
+    deps:
+    - path: artifacts/data_ingestion/splitted_dataset
+      hash: md5
+      md5: a719231e1f565d9fc1912b04f8e4ca57.dir
+      size: 1268291642
+      nfiles: 2820
+    - path: artifacts/training/model.h5
+      hash: md5
+      md5: 5547d6fd90848d13e5184af56c74e70a
+      size: 59551208
+    - path: config/config.yaml
+      hash: md5
+      md5: 674b1c34376e6dc1aa591c19a9f1edbe
+      size: 987
+    - path: src/Mushroom_edibility_classifier/pipeline/stage_04_evaluation.py
+      hash: md5
+      md5: 9cb01a49a65e214ac7394c62af16f090
+      size: 921
+    params:
+      params.yaml:
+        BATCH_SIZE: 8
+        IMAGE_SIZE:
+        - 224
+        - 224
+        - 3
+    outs:
+    - path: scores.json
+      hash: md5
+      md5: ecd0b49ae98d0f6cc4e771dd26a61335
+      size: 73
