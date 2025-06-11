@@ -13,7 +13,7 @@ class PredictionPipeline:
             # Load and preprocess image
             test_image = image.load_img(image_path, target_size=(224, 224))
             test_image = image.img_to_array(test_image)
-            test_image = np.expand_dims(test_image, axis=0)
+            test_image = np.expand_dims(test_image, axis=0)/255.0
             
             # Make prediction
             prediction = self.model.predict(test_image)
